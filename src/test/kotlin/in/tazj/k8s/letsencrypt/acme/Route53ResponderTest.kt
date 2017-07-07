@@ -14,9 +14,12 @@ class Route53ResponderTest {
     @Test
     fun correctHostedZoneIsFound() {
         val testList = ImmutableList.of(
-                HostedZone("incorrect-1", "tazj.in.", ""),
-                HostedZone("correct", "test.tazj.in.", ""),
+                HostedZone("incorrect-1", "tazj.in.", "")
+                        .withConfig(HostedZoneConfig().withPrivateZone(false)),
+                HostedZone("correct", "test.tazj.in.", "")
+                        .withConfig(HostedZoneConfig().withPrivateZone(false)),
                 HostedZone("incorrect-2", "other.tazj.in.", "")
+                        .withConfig(HostedZoneConfig().withPrivateZone(false))
         )
 
         val client: AmazonRoute53Client = mock {

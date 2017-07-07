@@ -106,17 +106,18 @@ class CertificateRequestHandler(
         val certWriter = StringWriter()
         CertificateUtils.writeX509Certificate(downloadedCertificate, certWriter)
 
-        val chainWriter = StringWriter()
-        CertificateUtils.writeX509CertificateChain(certificate.downloadChain(), chainWriter)
+        val downloadedChain = certificate.downloadChain()
+        val fullchainWriter = StringWriter()
+        CertificateUtils.writeX509CertificateChain(fullchainWriter, downloadedCertificate, *downloadedChain)
 
         val keyWriter = StringWriter()
         KeyPairUtils.writeKeyPair(domainKeyPair, keyWriter)
 
         val certificateFiles = ImmutableMap.of(
                 secretFilenames.certificate, base64EncodeWriter(certWriter),
-                secretFilenames.chain, base64EncodeWriter(chainWriter),
+                secretFilenames.chain, base64EncodeWriter(fullchainWriter),
                 secretFilenames.key, base64EncodeWriter(keyWriter),
-                secretFilenames.fullchain, base64EncodeWriter(certWriter, chainWriter))
+                secretFilenames.fullchain, base64EncodeWriter(fullchainWriter))
 
         return CertificateResponse(domains, certificateFiles,
                 downloadedCertificate.notAfter, acmeServer)
@@ -177,9 +178,9 @@ class CertificateRequestHandler(
         val observer = DnsRecordObserver(challengeRecord, rootZone, dns01Challenge.digest)
         observer.observeDns()
 
-        val cleanup: Runnable = {
+        val cleanup: Runnable = Runnable {
             dnsResponder.removeChallengeRecord(challengeRecord, dns01Challenge.digest)
-        } as Runnable
+        }
 
         return Pair(dns01Challenge, cleanup)
     }
